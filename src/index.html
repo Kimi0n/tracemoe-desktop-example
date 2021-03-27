@@ -9,15 +9,17 @@
 
     <div id='menu'>
       <div id='image'></div>
-      <div id='info'></div>
       <button id='open-image'>Select Image</button>
       <button id='send-to-trace' hidden>Get Source</button>
+      <div id='info'></div>
     </div>
     
 
     <script>
       var {dialog} = require('electron').remote;
+      var fs = require('fs');
       var screenshot, traceResult;
+      const FILE_SIZE_LIMIT = 10000000;
 
       document.getElementById('open-image').addEventListener('click', () => {
         let options = {
@@ -34,9 +36,14 @@
               alert("Error opening the file!");
             } else {
               if(filepath.canceled != true) {
-                screenshot = filepath;
-                document.getElementById('image').innerHTML = '<img id="the-image" src="' + screenshot.filePaths[0] + '"/>';
-                document.getElementById('send-to-trace').hidden = false;
+                if(fs.statSync(filepath.filePaths[0]).size < FILE_SIZE_LIMIT) {
+                  screenshot = filepath;
+                  document.getElementById('image').innerHTML = '<img id="the-image" src="' + screenshot.filePaths[0] + '"/>';
+                  document.getElementById('send-to-trace').hidden = false;
+                } else {
+                  document.getElementById('image').innerHTML = '';
+                  document.getElementById('info').innerHTML = 'File is too big!';
+                }
               }
             }
         });
