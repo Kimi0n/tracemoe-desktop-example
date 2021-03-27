@@ -24,7 +24,16 @@ p {
   margin: 0;
 }
 
-ol {
-  margin: 0;
-  list-style-type: decimal;
+.loading {
+  animation: loading 0.5s infinite linear;
+  animation-direction: alternate;
+}
+
+@keyframes loading{
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.8;
+  }
 }

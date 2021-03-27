@@ -57,13 +57,15 @@
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
+        document.getElementById('the-image').classList.add('loading');
         fetch("https://trace.moe/api/search", {
           method: "POST",
           body: JSON.stringify({ image: canvas.toDataURL("image/jpeg", 0.8) }),
           headers: { "Content-Type": "application/json" },
         }).then((res) => res.json()).then((result) => {
           traceResult = result;
-          
+          document.getElementById('the-image').classList.remove('loading');
+
           if(traceResult.docs.length == 0) {
             document.getElementById('info').innerHTML = 'Nothing found!';
           } else {
