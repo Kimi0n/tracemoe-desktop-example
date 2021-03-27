@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Trace.moe</title>
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+
+    <div id='menu'>
+      <div id='image'></div>
+      <div id='info'></div>
+      <button id='open-image'>Select Image</button>
+      <button id='send-to-trace' hidden>Get Source</button>
+    </div>
+    
+
+    <script>
+      var {dialog} = require('electron').remote;
+      var screenshot, traceResult;
+
+      document.getElementById('open-image').addEventListener('click', () => {
+        let options = {
+          title: 'Open Anime Screenshot',
+          properties: ['openFile'],
+
+          filters: [
+            {name: 'Images (*.jpg *.png)', extensions: ['jpg', 'png']}
+          ]
+        };
+
+        dialog.showOpenDialog(options).then(filepath => {
+          if(filepath === undefined) {
+              alert("Error opening the file!");
+            } else {
+              if(filepath.canceled != true) {
+                screenshot = filepath;
+                document.getElementById('image').innerHTML = '<img id="the-image" src="' + screenshot.filePaths[0] + '"/>';
+                document.getElementById('send-to-trace').hidden = false;
+              }
+            }
+        });
+      }, false);
+
+      document.getElementById('send-to-trace').addEventListener('click', () => {
+        var img = document.querySelector('#the-image');
+        var canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        fetch("https://trace.moe/api/search", {
+          method: "POST",
+          body: JSON.stringify({ image: canvas.toDataURL("image/jpeg", 0.8) }),
+          headers: { "Content-Type": "application/json" },
+        }).then((res) => res.json()).then((result) => {
+          traceResult = result;
+          
+          if(traceResult.docs.length == 0) {
+            document.getElementById('info').innerHTML = 'Nothing found!';
+          } else {
+            document.getElementById('info').innerHTML = '<h1>' + traceResult.docs[0].title_english + '</h1>';
+            document.getElementById('info').innerHTML += '<h2>' + traceResult.docs[0].title_native + '</h2>';
+            
+            if(traceResult.docs[0].episode != "") {
+              document.getElementById('info').innerHTML += '<p> Episode ' + traceResult.docs[0].episode + '</p>';
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
